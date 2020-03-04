@@ -28,8 +28,30 @@ def test_version():
         print("Test version Failed")
         print(e)
 
+def test_cloud_storage_save():
+    print("\nTesting save_version_to_cloud")
+    try:
+        check_version.save_version_to_cloud(check_version.client, "test data", "test.json", "gtm-state-storage")
+    except Exception as e:
+        print("Test storage save failed...")
+        print(e)
+    try:    
+        bucket = check_version.client.get_bucket("gtm-state-storage")
+        test = bucket.get_blob("test.json")
+        test_value = test.download_as_string()
+        assert test_value == b"test data", "test is {test_value}" 
+        print(f"Test value is successfully written as {test_value}")
+    except Exception as e:
+        print("Tests storage save failed...")
+        print(e)
+
 if __name__ == "__main__":
-    print("Tests started...")
-    test_get_data()
-    test_version()
+    try:
+        print("Tests started...")
+        # test_get_data()
+        # test_version()
+        test_cloud_storage_save()
+    except Exception as e:
+        print("Tests failed...")
+        print(e)
 
