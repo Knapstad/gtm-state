@@ -1,11 +1,8 @@
 {
     "gcs": {
-      "bucketName": "gcs-bucket-name",
-      "fileName": "filename.json"
+      "bucket_name": "bucketname",
+      "blob_name": "blobname"
     },
-    "slackOutput": [{
-      "slackWebhookUrl": "https://hooks.slack.com/services/YYYY/XXXX/ZZZZ",
-      "gtmContainers": ["12345_23456", "12345_34567"]
-    }],
-    "verboseLogging": true
+    "gtm_containers": ["12345_54321"],
+    "slack_hook": "https://hooks.slack.com/services/xxx/xxx/xxx"
   }
