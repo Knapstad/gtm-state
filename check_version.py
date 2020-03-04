@@ -51,13 +51,11 @@ def send_slack_message(hook, message):
 if __name__ == "__main__":
     data = get_gtm_version_data(service)
     version = get_version(data)
-    print(f"Live version: {version}")
     cloud_version = load_version_from_cloud(client, BLOB_NAME, BUCKET_NAME)
     cloud_version = str(cloud_version,"utf8")
-    print(f"Cloud version: {cloud_version}")
 
     if cloud_version == version:
-        print("Is same version")
+        pass
     else:
         message = f"New version: {version} \nName: {data['name']}\nDescription: {data['description'].capitalize()}\nLink: {data['tagManagerUrl']}"
         send_slack_message(HOOK, message)
