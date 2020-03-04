@@ -45,12 +45,23 @@ def test_cloud_storage_save():
         print("Tests storage save failed...")
         print(e)
 
+def test_cloud_storage_load():
+    print("\nTesting load_version_from_cloud")
+    try:
+        test = check_version.load_version_from_cloud(check_version.client, "test.json", "gtm-state-storage")
+        assert test == b"test data", f"test is {test}"
+        print("Load version passed")
+    except Exception as e:
+        print("Load version failed")
+        print(e)
+
 if __name__ == "__main__":
     try:
         print("Tests started...")
         # test_get_data()
         # test_version()
-        test_cloud_storage_save()
+        # test_cloud_storage_save()
+        test_cloud_storage_load()
     except Exception as e:
         print("Tests failed...")
         print(e)
