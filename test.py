@@ -58,9 +58,9 @@ def test_cloud_storage_load():
 if __name__ == "__main__":
     try:
         print("Tests started...")
-        # test_get_data()
-        # test_version()
-        # test_cloud_storage_save()
+        test_get_data()
+        test_version()
+        test_cloud_storage_save()
         test_cloud_storage_load()
     except Exception as e:
         print("Tests failed...")
