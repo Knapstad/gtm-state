@@ -16,6 +16,7 @@ CREDENTIALS = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 BLOB_NAME = config["gcs"]["blob_name"]
 BUCKET_NAME = config["gcs"]["bucket_name"]
+HOOK = config["slack_hook"]
 data = {}
 
 service = googleapiclient.discovery.build("tagmanager", "v2", credentials =CREDENTIALS )
@@ -59,5 +60,5 @@ if __name__ == "__main__":
         print("Is same version")
     else:
         message = f"New version: {version} \nName: {data['name']}\nDescription: {data['description'].capitalize()}\nLink: {data['tagManagerUrl']}"
-        print(message)
+        send_slack_message(HOOK, message)
         save_version_to_cloud(client,version,BLOB_NAME,BUCKET_NAME)
