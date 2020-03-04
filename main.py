@@ -48,7 +48,8 @@ def send_slack_message(hook, message):
     payload={"text": message}
     requests.post(hook, data=json.dumps(payload))
 
-if __name__ == "__main__":
+
+def check_version():
     data = get_gtm_version_data(service)
     version = get_version(data)
     cloud_version = load_version_from_cloud(client, BLOB_NAME, BUCKET_NAME)
@@ -60,3 +61,6 @@ if __name__ == "__main__":
         message = f"New version: {version} \nName: {data['name']}\nDescription: {data['description'].capitalize()}\nLink: {data['tagManagerUrl']}"
         send_slack_message(HOOK, message)
         save_version_to_cloud(client,version,BLOB_NAME,BUCKET_NAME)
+
+if __name__ == "__main__":
+    check_version()
