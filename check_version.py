@@ -43,6 +43,10 @@ def load_version_from_cloud(client, blob_name: str, bucket_name: str):
     blob = bucket.get_blob(blob_name)
     return blob.download_as_string()
 
+def send_slack_message(hook, message):
+    payload={"text": message}
+    requests.post(hook, data=json.dumps(payload))
+
 if __name__ == "__main__":
     data = get_gtm_version_data(service)
     version = get_version(data)
