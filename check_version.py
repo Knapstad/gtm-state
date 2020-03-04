@@ -10,13 +10,13 @@ GTM_ACCOUNT = config["gtmContainers"][0].split("_")[0]
 GTM_CONTAINER = config["gtmContainers"][0].split("_")[1]
 SCOPES =["https://www.googleapis.com/auth/tagmanager.readonly","https://www.googleapis.com/auth/devstorage.read_write"] #https://www.googleapis.com/auth/tagmanager.edit.containers'
 SERVICE_ACCOUNT_FILE = "obos-225315-4adb95aa0d92.json"
-credentials = service_account.Credentials.from_service_account_file(
+CREDENTIALS = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
 data = {}
 
-service = googleapiclient.discovery.build("tagmanager", "v2", credentials =credentials )
-client = storage.Client(project="obos",credentials=credentials)
+service = googleapiclient.discovery.build("tagmanager", "v2", credentials =CREDENTIALS )
+client = storage.Client(project="obos",credentials=CREDENTIALS)
 
 
 def get_gtm_version_data(service):
