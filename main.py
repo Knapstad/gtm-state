@@ -78,7 +78,14 @@ def get_tag_changes(live: dict, oldversion: dict):
 
     return (changes(new=new, removed=removed, changed=changed))
 
-
+def get_trigger_changes(live: dict, oldversion: dict):
+    live_tags = [i["triggerId"] for i in live["trigger"]]
+    old_tags = [i["triggerId"] for i in oldversion["trigger"]]
+    new = [i for i in live_tags if i not in old_tags]
+    removed = [i for i in old_tags if i not in live_tags]
+    changed = [i["triggerId"] for i in live["trigger"] for y in oldversion["trigger"] if y["triggerId"]==i["triggerId"] and y["fingerprint"] != i["fingerprint"] ]
+    changes = namedtuple("changes", "new removed changed")
+    return (changes(new=new, removed=removed, changed=changed))
 
 
 if __name__ == "__main__":
