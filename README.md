@@ -18,8 +18,11 @@ This script requires:
 
 First you want to set up your Google cloud Project.
 Go to this link [create Google Cloud Project](https://console.cloud.google.com/projectcreate).
+
 ![Screenhot of the create new project form](/readme-img/Create-project.png)
+
 Give you project an awsome name and click create.
 Remember to set up a billing account if you don't already have one
 [Create a billing account](https://console.cloud.google.com/billing/create)
+
 ![Screenshot of the create a blilling account form](/readme-img/createbilling.png)
