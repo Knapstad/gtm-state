@@ -69,23 +69,24 @@ def get_version_data(version: str):
     return data
 
 def get_tag_changes(live: dict, oldversion: dict):
-    live_tags = [[i["tagId"], i["name"]] for i in live["tag"]]
-    old_tags = [i["tagId"] for i in oldversion["tag"]]
+    tag = namedtuple("tag","id name")
+    live_tags = [tag(i["tagId"], i["name"]) for i in live["tag"]]
+    old_tags = [tag(i["tagId"], i["name"]) for i in oldversion["tag"]]
     new = [i for i in live_tags if i not in old_tags]
     removed = [i for i in old_tags if i not in live_tags]
-    changed = [i["tagId"] for i in live["tag"] for y in oldversion["tag"] if y["tagId"]==i["tagId"] and y["fingerprint"] != i["fingerprint"] ]
+    changed = [tag(i["tagId"], i["name"]) for i in live["tag"] for y in oldversion["tag"] if y["tagId"]==i["tagId"] and y["fingerprint"] != i["fingerprint"] ]
     changes = namedtuple("changes", "new removed changed")
-
-    return (changes(new=new, removed=removed, changed=changed))
+    return changes(new=new, removed=removed, changed=changed)
 
 def get_trigger_changes(live: dict, oldversion: dict):
-    live_tags = [i["triggerId"] for i in live["trigger"]]
-    old_tags = [i["triggerId"] for i in oldversion["trigger"]]
-    new = [i for i in live_tags if i not in old_tags]
-    removed = [i for i in old_tags if i not in live_tags]
-    changed = [i["triggerId"] for i in live["trigger"] for y in oldversion["trigger"] if y["triggerId"]==i["triggerId"] and y["fingerprint"] != i["fingerprint"] ]
+    trigger = namedtuple("trigger","id name")
+    live_triggers = [trigger(i["triggerId"], i["name"]) for i in live["trigger"]]
+    old_triggers = [trigger(i["triggerId"], i["name"]) for i in oldversion["trigger"]]
+    new = [i for i in live_triggers if i not in old_triggers]
+    removed = [i for i in old_triggers if i not in live_triggers]
+    changed = [trigger(i["triggerId"], i["name"]) for i in live["trigger"] for y in oldversion["trigger"] if y["triggerId"]==i["triggerId"] and y["fingerprint"] != i["fingerprint"] ]
     changes = namedtuple("changes", "new removed changed")
-    return (changes(new=new, removed=removed, changed=changed))
+    return changes(new=new, removed=removed, changed=changed)
 
 
 if __name__ == "__main__":
