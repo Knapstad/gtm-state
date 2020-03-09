@@ -116,6 +116,14 @@ def create_tag_message(changes):
     message += create_removed_tag_message(changes)
     return message
 
+def retry_on_connection_error(function, max_retry: int = 3):
+    retries = 0
+    while retries < max_retry:
+        try:
+            return function()
+        except ConnectionError:
+            retries += 1
+
 if __name__ == "__main__":
 
     main()
