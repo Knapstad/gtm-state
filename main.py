@@ -118,4 +118,4 @@ def create_tag_message(changes):
 
 if __name__ == "__main__":
 
-    check_version()
+    main()
