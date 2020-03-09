@@ -21,8 +21,8 @@ BUCKET_NAME = config["gcs"]["bucket_name"]
 HOOK = config["slack_hook"]
 data = {}
 
-service = googleapiclient.discovery.build("tagmanager", "v2", credentials =CREDENTIALS )
-client = storage.Client(project="obos",credentials=CREDENTIALS)
+service = googleapiclient.discovery.build("tagmanager", "v2", credentials=CREDENTIALS, cache_discovery=False)
+client = storage.Client(project="obos", credentials=CREDENTIALS, cache_discovery=False)
 
 def get_live_version_data(service):
     data=service.accounts().containers().versions().live(parent=f"accounts/{GTM_ACCOUNT}/containers/{GTM_CONTAINER}").execute()
@@ -51,7 +51,7 @@ def send_slack_message(hook: str, message: str):
     requests.post(hook, data=json.dumps(payload))
 
 
-def check_version():
+def main():
     data = get_live_version_data(service)
     version = get_live_version(data)
     cloud_version = load_version_from_cloud(client, BLOB_NAME, BUCKET_NAME)
@@ -88,6 +88,33 @@ def get_trigger_changes(live: dict, oldversion: dict):
     changes = namedtuple("changes", "new removed changed")
     return changes(new=new, removed=removed, changed=changed)
 
+def create_new_tag_message(changes):
+    if changes.new:
+        message=f"New tags:"
+        for tag in changes.new:
+            message +=f"\nId: {tag.id}     Name: {tag.name}"
+        return message
+
+def create_removed_tag_message(changes):
+    if changes.removed:
+        message=f"\n\nRemoved tags:"
+        for tag in changes.removed:
+            message +=f"\nId: {tag.id}     Name: {tag.name}"
+        return message
+
+def create_changed_tag_message(changes):
+    if changes.changed:
+        message=f"\n\nChanged tags:"
+        for tag in changes.changed:
+            message +=f"\nId: {tag.id}     Name: {tag.name}"
+        return message
+
+def create_tag_message(changes):
+    message = ""
+    message += create_new_tag_message(changes)
+    message += create_changed_tag_message(changes)
+    message += create_removed_tag_message(changes)
+    return message
 
 if __name__ == "__main__":
 
