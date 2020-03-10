@@ -16,12 +16,12 @@ SCOPES = [
     "https://www.googleapis.com/auth/tagmanager.readonly",
     "https://www.googleapis.com/auth/devstorage.read_write",
 ]
-SERVICE_ACCOUNT_FILE = "obos-225315-4adb95aa0d92.json"
+SERVICE_ACCOUNT_FILE = config["cloud_credetials"]
 CREDENTIALS = service_account.Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes=SCOPES
 )
-BLOB_NAME = config["gcs"]["blob_name"]
-BUCKET_NAME = config["gcs"]["bucket_name"]
+BLOB_NAME = config["blob_name"]
+BUCKET_NAME = config["bucket_name"]
 HOOK = config["slack_hook"]
 MICROSOFT = config["microsoft_hook"]
 data = {}
@@ -208,14 +208,14 @@ def create_trigger_message(changes):
     message += create_removed_trigger_message(changes)
     return message
 
-def create_slack_message(tag_changes, trigger_changes):
-    message = f"New version: {version} \nName: {data['name']}\nDescription: {data['description']}\nLink: {data['tagManagerUrl']}\n"
+def create_slack_message(tag_changes, trigger_changes, data):
+    message = f"New version: {data['containerVersionId']} \nName: {data['name']}\nDescription: {data['description']}\nLink: {data['tagManagerUrl']}\n"
     message += create_tag_message(tag_changes).replace("## ", "").replace("\n\n","\n")
     message += create_trigger_message(trigger_changes).replace("## ", "").replace("\n\n","\n")
     return message
 
-def create_teams_message(tag_changes, trigger_changes):
-    message = {"title": f"New version published", "text": f"**New version:** {version} \n\n**Name:** {data['name']}\n\n**Description:** {data['description']}\n\n**Link:** {data['tagManagerUrl']}\n\n"}
+def create_teams_message(tag_changes, trigger_changes, data):
+    message = {"title": f"New version published", "text": f"**New version:** {data['containerVersionId']} \n\n**Name:** {data['name']}\n\n**Description:** {data['description']}\n\n**Link:** {data['tagManagerUrl']}\n\n"}
     message["text"] += create_tag_message(tag_changes)
     message["text"] += create_trigger_message(trigger_changes)
     return message
@@ -241,7 +241,7 @@ def main(*args, **kwargs):
         version_data = get_version_data(cloud_version)
         tag_changes = get_tag_changes(data, version_data)
         trigger_changes = get_trigger_changes(data, version_data) 
-        message += create_slack_message(tag_changes, trigger_changes)
+        message = create_slack_message(tag_changes, trigger_changes, data)
         send_teams_message(MICROSOFT)
         send_slack_message(HOOK, message)
         save_version_to_cloud(client, version, BLOB_NAME, BUCKET_NAME)
