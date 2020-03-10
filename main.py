@@ -222,11 +222,11 @@ def create_teams_message(tag_changes, trigger_changes):
 
 def send_slack_message(hook: str, message: str):
     payload = {"text": message}
-    requests.post(HOOK, data=json.dumps(payload))
+    requests.post(hook, data=json.dumps(payload))
 
-def send_teams_message(hook: str, message: str):
+def send_teams_message(hook: str):
     payload = create_slack_message(tag_changes, trigger_changes)
-    requests.post(MICROSOFT, data=json.dumps(payload)).text
+    requests.post(hook, data=json.dumps(payload)).text
 
 def main(*args, **kwargs):
     #google cloud invokes with 2 arguments, these are not used
@@ -242,6 +242,7 @@ def main(*args, **kwargs):
         tag_changes = get_tag_changes(data, version_data)
         trigger_changes = get_trigger_changes(data, version_data) 
         message += create_slack_message(tag_changes, trigger_changes)
+        send_teams_message(MICROSOFT)
         send_slack_message(HOOK, message)
         save_version_to_cloud(client, version, BLOB_NAME, BUCKET_NAME)
 
