@@ -1,8 +1,8 @@
 {
-    "gcs": {
-      "bucket_name": "bucketname",
-      "blob_name": "blobname"
-    },
-    "gtm_containers": ["12345_54321"],
-    "slack_hook": "https://hooks.slack.com/services/xxx/xxx/xxx"
-  }
+    "bucket_name": "bucket_name",
+    "blob_name": "state.json",
+    "gtm_containers": ["accountid_containerid"],
+    "slack_hook": "slack_hook_url",
+    "microsoft_hook": "microsoft_teams_hook_url",
+    "cloud_credetials": "path_to_credentials_file"
+}
