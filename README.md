@@ -11,6 +11,18 @@ This script requires:
 - a Google Tag Manager account
 - a Google Cloud account
 - a Slack account
+- a Teams account
+
+## Example output
+
+This script with this setup will check for changes in your Google Tag Manager container and post the changes to Slack and Microsoft Teams.
+
+Slack:
+![Sceen shot of Slack example](/readme-img/slack-example.png)
+
+Teams:
+![Screen shot of Teams example](/readme-img/teams-example.png)
+
 
 ## The setup
 
