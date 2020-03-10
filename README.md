@@ -1,4 +1,4 @@
-# The GTM version checker - for google cloud and slack
+# The GTM version checker - for Google Cloud, Slack and Microsoft Teams
 
 This script was made by inspiration from [Simo Hava's post on a slack notification system for Google Tag Manager changes](https://www.simoahava.com/analytics/create-slack-notification-system-google-tag-manager-changes/)
 Its intended use is as a [Google Cloud Function](https://cloud.google.com/functions/) integrated with [Slack](https://www.slack.com) and [Microsoft Teams](https://products.office.com/en-us/microsoft-teams/group-chat-software), but you can run the script anywhere you like.
