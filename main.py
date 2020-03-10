@@ -210,8 +210,8 @@ def create_trigger_message(changes):
 
 def create_slack_message(tag_changes, trigger_changes):
     message = f"New version: {version} \nName: {data['name']}\nDescription: {data['description']}\nLink: {data['tagManagerUrl']}\n"
-    message += create_tag_message(tag_changes).replace("## ", "").replace("/n/n","/n")
-    message += create_trigger_message(trigger_changes).replace("## ", "").replace("/n/n","/n")
+    message += create_tag_message(tag_changes).replace("## ", "").replace("\n\n","\n")
+    message += create_trigger_message(trigger_changes).replace("## ", "").replace("\n\n","\n")
     return message
 
 def create_teams_message(tag_changes, trigger_changes):
