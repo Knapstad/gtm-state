@@ -3,15 +3,6 @@
 This script was made by inspiration from [Simo Hava's post on a slack notification system for Google Tag Manager changes](https://www.simoahava.com/analytics/create-slack-notification-system-google-tag-manager-changes/)
 Its intended use is as a [Google Cloud Function](https://cloud.google.com/functions/) integrated with [Slack](https://www.slack.com) and [Microsoft Teams](https://products.office.com/en-us/microsoft-teams/group-chat-software), but you can run the script anywhere you like.
 
-## Requirements
-
-This script requires:
-
-- Python 3.6 or higher
-- a Google Tag Manager account
-- a Google Cloud account
-- a Slack account
-- a Teams account
 
 ## Example output
 
@@ -23,6 +14,17 @@ Slack:
 Teams:
 ![Screen shot of Teams example](/readme-img/teams-example.png)
 
+## Requirements
+
+This script requires:
+
+- Python 3.6 or higher
+- a Google Tag Manager account
+- a Google Cloud account
+- a Slack account
+- a Teams account
+
+Download  config.json, main&#46;py and requrements.txt to your project folder.
 
 ## The setup
 
