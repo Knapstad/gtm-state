@@ -23,6 +23,7 @@ CREDENTIALS = service_account.Credentials.from_service_account_file(
 BLOB_NAME = config["gcs"]["blob_name"]
 BUCKET_NAME = config["gcs"]["bucket_name"]
 HOOK = config["slack_hook"]
+MICROSOFT = config["microsoft_hook"]
 data = {}
 
 service = googleapiclient.discovery.build(
@@ -86,11 +87,6 @@ def load_version_from_cloud(
     return blob.download_as_string()
 
 
-def send_slack_message(hook: str, message: str):
-    payload = {"text": message}
-    requests.post(hook, data=json.dumps(payload))
-
-
 @retry_on_connection_error()
 def get_version_data(version: str):
     data = (
@@ -139,9 +135,9 @@ def get_trigger_changes(live: dict, oldversion: dict):
 
 def create_new_tag_message(changes):
     if changes.new:
-        message = f"New tags:"
+        message = f"## New tags:"
         for tag in changes.new:
-            message += f"\nId: {tag.id}     Name: {tag.name}"
+            message += f"\n\n- Id: {tag.id}     Name: {tag.name}"
         return message
     else:
         return ""
@@ -149,9 +145,9 @@ def create_new_tag_message(changes):
 
 def create_removed_tag_message(changes):
     if changes.removed:
-        message = f"\n\nRemoved tags:"
+        message = f"\n\n## Removed tags:"
         for tag in changes.removed:
-            message += f"\nId: {tag.id}     Name: {tag.name}"
+            message += f"\n\n- Id: {tag.id}     Name: {tag.name}"
         return message
     else:
         return ""
@@ -159,9 +155,9 @@ def create_removed_tag_message(changes):
 
 def create_changed_tag_message(changes):
     if changes.changed:
-        message = f"\n\nChanged tags:"
+        message = f"\n\n## Changed tags:"
         for tag in changes.changed:
-            message += f"\nId: {tag.id}     Name: {tag.name}"
+            message += f"\n\n- Id: {tag.id}     Name: {tag.name}"
         return message
     else:
         return ""
@@ -171,13 +167,15 @@ def create_tag_message(changes):
     message += create_new_tag_message(changes)
     message += create_changed_tag_message(changes)
     message += create_removed_tag_message(changes)
+    if len(message)>0:
+        message += "\n\n"
     return message
 
 def create_new_trigger_message(changes):
     if changes.new:
-        message = f"New triggers:"
+        message = f"## New triggers:"
         for trigger in changes.new:
-            message += f"\nId: {trigger.id}     Name: {trigger.name}"
+            message += f"\n\n- Id: {trigger.id}     Name: {trigger.name}"
         return message
     else:
         return ""
@@ -185,9 +183,9 @@ def create_new_trigger_message(changes):
 
 def create_removed_trigger_message(changes):
     if changes.removed:
-        message = f"\n\nRemoved triggers:"
+        message = f"\n\n## Removed triggers:"
         for trigger in changes.removed:
-            message += f"\nId: {trigger.id}     Name: {trigger.name}"
+            message += f"\n\n- Id: {trigger.id}     Name: {trigger.name}"
         return message
     else:
         return ""
@@ -195,9 +193,9 @@ def create_removed_trigger_message(changes):
 
 def create_changed_trigger_message(changes):
     if changes.changed:
-        message = f"\n\nChanged tags:"
+        message = f"\n\n## Changed tags:"
         for trigger in changes.changed:
-            message += f"\nId: {trigger.id}     Name: {trigger.name}"
+            message += f"\n\n- Id: {trigger.id}     Name: {trigger.name}"
         return message
     else:
         return ""
@@ -210,11 +208,25 @@ def create_trigger_message(changes):
     message += create_removed_trigger_message(changes)
     return message
 
-def create_slack_message(changes):
-    message = ""
-    message += create_tag_message(changes)
-    message += create_trigger_message(changes)
+def create_slack_message(tag_changes, trigger_changes):
+    message = f"New version: {version} \nName: {data['name']}\nDescription: {data['description']}\nLink: {data['tagManagerUrl']}\n"
+    message += create_tag_message(tag_changes).replace("## ", "").replace("/n/n","/n")
+    message += create_trigger_message(trigger_changes).replace("## ", "").replace("/n/n","/n")
     return message
+
+def create_teams_message(tag_changes, trigger_changes):
+    message = {"title": f"New version published", "text": f"**New version:** {version} \n\n**Name:** {data['name']}\n\n**Description:** {data['description']}\n\n**Link:** {data['tagManagerUrl']}\n\n"}
+    message["text"] += create_tag_message(tag_changes)
+    message["text"] += create_trigger_message(trigger_changes)
+    return message
+
+def send_slack_message(hook: str, message: str):
+    payload = {"text": message}
+    requests.post(HOOK, data=json.dumps(payload))
+
+def send_teams_message(hook: str, message: str):
+    payload = create_slack_message(tag_changes, trigger_changes)
+    requests.post(MICROSOFT, data=json.dumps(payload)).text
 
 def main(*args, **kwargs):
     #google cloud invokes with 2 arguments, these are not used
@@ -226,9 +238,10 @@ def main(*args, **kwargs):
     if cloud_version == version:
         pass
     else:
-        changes = get_tag_changes(data, get_version_data(cloud_version))
-        message = f"New version: {version} \nName: {data['name']}\nDescription: {data['description']}\nLink: {data['tagManagerUrl']}"
-        message += create_slack_message(changes)
+        version_data = get_version_data(cloud_version)
+        tag_changes = get_tag_changes(data, version_data)
+        trigger_changes = get_trigger_changes(data, version_data) 
+        message += create_slack_message(tag_changes, trigger_changes)
         send_slack_message(HOOK, message)
         save_version_to_cloud(client, version, BLOB_NAME, BUCKET_NAME)
 
