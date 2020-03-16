@@ -241,9 +241,9 @@ def main(*args, **kwargs):
         version_data = get_version_data(cloud_version)
         tag_changes = get_tag_changes(data, version_data)
         trigger_changes = get_trigger_changes(data, version_data) 
-        #message = create_slack_message(tag_changes, trigger_changes, data)
+        message = create_slack_message(tag_changes, trigger_changes, data)
         send_teams_message(MICROSOFT, tag_changes, trigger_changes, data)
-        #send_slack_message(HOOK, message)
+        send_slack_message(HOOK, message)
         save_version_to_cloud(client, version, BLOB_NAME, BUCKET_NAME)
 
 if __name__ == "__main__":
