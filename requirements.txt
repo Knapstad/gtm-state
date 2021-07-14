@@ -2,7 +2,7 @@ cachetools==4.2.2
 certifi==2021.5.30
 chardet==4.0.0
 google-api-core==1.30.0
-google-api-python-client==2.11.0
+google-api-python-client==2.13.0
 google-auth==1.32.1
 google-auth-httplib2==0.1.0
 google-cloud-core==1.7.1
