@@ -2,38 +2,14 @@ from google.oauth2 import service_account
 from google.cloud import storage
 from collections import namedtuple
 from functools import wraps
+from messages import *
 import googleapiclient.discovery
-import json
 import requests
+import json
 
-
-with open("config.json") as file:
-    config = json.load(file)
-
-GTM_ACCOUNT = config["gtm_containers"][0].split("_")[0]
-GTM_CONTAINER = config["gtm_containers"][0].split("_")[1]
-SCOPES = [
-    "https://www.googleapis.com/auth/tagmanager.readonly",
-    "https://www.googleapis.com/auth/devstorage.read_write",
-]
-SERVICE_ACCOUNT_FILE = config["cloud_credetials"]
-CREDENTIALS = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES
-)
-BLOB_NAME = config["blob_name"]
-BUCKET_NAME = config["bucket_name"]
-HOOK = config["slack_hook"]
-MICROSOFT = config["microsoft_hook"]
-data = {}
-
-service = googleapiclient.discovery.build(
-    "tagmanager", "v2", credentials=CREDENTIALS, cache_discovery=False
-)
-client = storage.Client(project="obos", credentials=CREDENTIALS)
 
 def retry_on_connection_error(max_retry: int = 3):
     def decorate_function(function):
-        
         @wraps(function)
         def retry(*args, **kwargs):
             tries = 0
@@ -43,25 +19,29 @@ def retry_on_connection_error(max_retry: int = 3):
                 except ConnectionError:
                     tries += 1
             return function(*args, **kwargs)
+
         return retry
+
     return decorate_function
 
+
 @retry_on_connection_error()
-def get_live_version_data(service):
-    data = (
+def get_live_version_data(service, GTM_ACCOUNT, GTM_CONTAINER):
+    version = (
         service.accounts()
         .containers()
         .versions()
         .live(parent=f"accounts/{GTM_ACCOUNT}/containers/{GTM_CONTAINER}")
         .execute()
     )
-    return data
+    return version
 
 
 def get_live_version(data) -> str:
     if not data:
         data = get_live_version_data()
     return data["containerVersionId"]
+
 
 @retry_on_connection_error()
 def save_version_to_cloud(
@@ -74,13 +54,12 @@ def save_version_to_cloud(
     blob = bucket.get_blob(blob_name)
     if not blob:
         blob = bucket.blob(blob_name)
-    blob.upload_from_string(data)
+    blob.upload_from_string(json.dumps(data))
+
 
 @retry_on_connection_error()
 def load_version_from_cloud(
-    client: "google.cloud.storage.client.Client", 
-    blob_name: str, 
-    bucket_name: str
+    client: "google.cloud.storage.client.Client", blob_name: str, bucket_name: str
 ):
     bucket = client.get_bucket(bucket_name)
     blob = bucket.get_blob(blob_name)
@@ -88,7 +67,7 @@ def load_version_from_cloud(
 
 
 @retry_on_connection_error()
-def get_version_data(version: str):
+def get_version_data(service, version: str, GTM_ACCOUNT: str, GTM_CONTAINER: str):
     data = (
         service.accounts()
         .containers()
@@ -117,6 +96,22 @@ def get_tag_changes(live: dict, oldversion: dict):
     return changes(new=new, removed=removed, changed=changed)
 
 
+def get_variable_changes(live: dict, oldversion: dict):
+    variable = namedtuple("variable", "id name")
+    live_tags = [variable(i["variableId"], i["name"]) for i in live["variable"]]
+    old_tags = [variable(i["variableId"], i["name"]) for i in oldversion["variable"]]
+    new = [i for i in live_tags if i not in old_tags]
+    removed = [i for i in old_tags if i not in live_tags]
+    changed = [
+        variable(i["variableId"], i["name"])
+        for i in live["variable"]
+        for y in oldversion["variable"]
+        if y["variableId"] == i["variableId"] and y["fingerprint"] != i["fingerprint"]
+    ]
+    changes = namedtuple("changes", "new removed changed")
+    return changes(new=new, removed=removed, changed=changed)
+
+
 def get_trigger_changes(live: dict, oldversion: dict):
     trigger = namedtuple("trigger", "id name")
     live_triggers = [trigger(i["triggerId"], i["name"]) for i in live["trigger"]]
@@ -133,122 +128,68 @@ def get_trigger_changes(live: dict, oldversion: dict):
     return changes(new=new, removed=removed, changed=changed)
 
 
-def create_new_tag_message(changes):
-    if changes.new:
-        message = f"## New tags:"
-        for tag in changes.new:
-            message += f"\n\n- Id: {tag.id}     Name: {tag.name}"
-        return message
-    else:
-        return ""
-
-
-def create_removed_tag_message(changes):
-    if changes.removed:
-        message = f"\n\n## Removed tags:"
-        for tag in changes.removed:
-            message += f"\n\n- Id: {tag.id}     Name: {tag.name}"
-        return message
-    else:
-        return ""
-
-
-def create_changed_tag_message(changes):
-    if changes.changed:
-        message = f"\n\n## Changed tags:"
-        for tag in changes.changed:
-            message += f"\n\n- Id: {tag.id}     Name: {tag.name}"
-        return message
-    else:
-        return ""
-
-def create_tag_message(changes):
-    message = ""
-    message += create_new_tag_message(changes)
-    message += create_changed_tag_message(changes)
-    message += create_removed_tag_message(changes)
-    if len(message)>0:
-        message += "\n\n"
-    return message
-
-def create_new_trigger_message(changes):
-    if changes.new:
-        message = f"## New triggers:"
-        for trigger in changes.new:
-            message += f"\n\n- Id: {trigger.id}     Name: {trigger.name}"
-        return message
-    else:
-        return ""
-
-
-def create_removed_trigger_message(changes):
-    if changes.removed:
-        message = f"\n\n## Removed triggers:"
-        for trigger in changes.removed:
-            message += f"\n\n- Id: {trigger.id}     Name: {trigger.name}"
-        return message
-    else:
-        return ""
-
-
-def create_changed_trigger_message(changes):
-    if changes.changed:
-        message = f"\n\n## Changed tags:"
-        for trigger in changes.changed:
-            message += f"\n\n- Id: {trigger.id}     Name: {trigger.name}"
-        return message
-    else:
-        return ""
-
-
-def create_trigger_message(changes):
-    message = ""
-    message += create_new_trigger_message(changes)
-    message += create_changed_trigger_message(changes)
-    message += create_removed_trigger_message(changes)
-    return message
-
-def create_slack_message(tag_changes, trigger_changes, data):
-    message = f"New version: {data['containerVersionId']} \nName: {data['name']}\nDescription: {data['description']}\nLink: {data['tagManagerUrl']}\n"
-    message += create_tag_message(tag_changes).replace("## ", "").replace("\n\n","\n")
-    message += create_trigger_message(trigger_changes).replace("## ", "").replace("\n\n","\n")
-    return message
-
-def create_teams_message(tag_changes, trigger_changes, data):
-    message = {"title": f"New version published", "text": f"**New version:** {data['containerVersionId']} \n\n**Name:** {data['name']}\n\n**Description:** {data['description']}\n\n**Link:** {data['tagManagerUrl']}\n\n"}
-    message["text"] += create_tag_message(tag_changes)
-    message["text"] += create_trigger_message(trigger_changes)
-    return message
-
-def send_slack_message(hook: str, message: str):
-    payload = {"text": message}
-    requests.post(hook, data=json.dumps(payload))
-
-def send_teams_message(hook: str, tag_changes, trigger_changes, data):
-    payload = create_teams_message(tag_changes, trigger_changes, data)
-    requests.post(hook, data=json.dumps(payload)).text
-
 def main(*args, **kwargs):
-    #google cloud invokes with 2 arguments, these are not used
-    data = get_live_version_data(service)
-    version = get_live_version(data)
-    cloud_version = load_version_from_cloud(client, BLOB_NAME, BUCKET_NAME)
-    cloud_version = str(cloud_version, "utf8")
+    with open("config.json") as file:
+        config = json.load(file)
+        SCOPES = [
+            "https://www.googleapis.com/auth/tagmanager.readonly",
+            "https://www.googleapis.com/auth/devstorage.read_write",
+        ]
+        SERVICE_ACCOUNT_FILE = config["cloud_credetials"]
 
-    if cloud_version == version:
-        pass
-    else:
-        version_data = get_version_data(cloud_version)
-        tag_changes = get_tag_changes(data, version_data)
-        trigger_changes = get_trigger_changes(data, version_data) 
-        message = create_slack_message(tag_changes, trigger_changes, data)
-        send_teams_message(MICROSOFT, tag_changes, trigger_changes, data)
-        send_slack_message(HOOK, message)
-        save_version_to_cloud(client, version, BLOB_NAME, BUCKET_NAME)
+        BLOB_NAME = config["blob_name"]
+        BUCKET_NAME = config["bucket_name"]
+        HOOK = config["slack_hook"]
+        MICROSOFT = config["microsoft_hook"]
+        CREDENTIALS = service_account.Credentials.from_service_account_file(
+            SERVICE_ACCOUNT_FILE, scopes=SCOPES
+        )
+        service = googleapiclient.discovery.build(
+            "tagmanager", "v2", credentials=CREDENTIALS, cache_discovery=False
+        )
+        client = storage.Client(project="obos", credentials=CREDENTIALS)
+        accounts = service.accounts().list().execute()
+        containers = [
+            service.accounts()
+            .containers()
+            .list(parent=account["path"])
+            .execute()["container"]
+            for account in accounts["account"]
+        ]
+        # flatten containers list
+        containers = [item for sublist in containers for item in sublist]
+        cloud_version = load_version_from_cloud(client, BLOB_NAME, BUCKET_NAME)
+        cloud_version = json.loads(str(cloud_version, "utf8"))
+
+        for container in containers:
+            GTM_ACCOUNT = container["accountId"]
+            GTM_CONTAINER = container["containerId"]
+            data = {}
+            data = get_live_version_data(service, GTM_ACCOUNT, GTM_CONTAINER)
+            version = get_live_version(data)
+
+            if cloud_version[f"{GTM_ACCOUNT}_{GTM_CONTAINER}"] == version:
+                pass
+
+            else:
+                version_data = get_version_data(
+                    service,
+                    cloud_version[f"{GTM_ACCOUNT}_{GTM_CONTAINER}"],
+                    GTM_ACCOUNT,
+                    GTM_CONTAINER,
+                )
+                tag_changes = get_tag_changes(data, version_data)
+                trigger_changes = get_trigger_changes(data, version_data)
+                variable_changes = get_variable_changes(data, version_data)
+                # message = create_slack_message(tag_changes, trigger_changes, variable_changes, data)
+                send_teams_message(
+                    MICROSOFT, tag_changes, trigger_changes, variable_changes, data
+                )
+                # send_slack_message(HOOK, message)
+                cloud_version[f"{GTM_ACCOUNT}_{GTM_CONTAINER}"] = version
+                save_version_to_cloud(client, cloud_version, BLOB_NAME, BUCKET_NAME)
+
 
 if __name__ == "__main__":
 
     main()
-
-
-
