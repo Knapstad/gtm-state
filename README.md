@@ -130,7 +130,6 @@ Now it's time to add all our parts to the config file.
 {
     "bucket_name": "bucket_name",
     "blob_name": "state.json",
-    "gtm_containers": ["accountid_containerid"],
     "slack_hook": "slack_hook_url",
     "microsoft_hook": "microsoft_teams_hook_url",
     "cloud_credetials": "path_to_credentials_file"
@@ -143,7 +142,6 @@ Type in your detail in the config file (I'm using dummy values)
 {
     "bucket_name": "gtm-state",
     "blob_name": "state.json",
-    "gtm_containers": ["32154678_156753"],
     "slack_hook": "https://my.slack.hook.com",
     "microsoft_hook": "https://my.microsoft.hook.com",
     "cloud_credetials": "mycredentials.json"
