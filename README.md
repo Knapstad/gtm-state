@@ -150,7 +150,7 @@ Type in your detail in the config file (I'm using dummy values)
 
 ### Step 7: Setup cloud function
 
-First create a zip file of the project. Make shure you only include main.py, requirements.txt, config.json and your credentials file.
+First create a zip file of the project. Make shure you only include main.py, messages.py, requirements.txt, config.json and your credentials file.
 
 [Go to Google Cloud - cloud functions](https://console.cloud.google.com/functions/list) and click create function.
 
