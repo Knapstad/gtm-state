@@ -19,13 +19,13 @@ Teams:
 
 This script requires:
 
-- Python 3.6 or higher
+- Python 3.8 or higher
 - a Google Tag Manager account
 - a Google Cloud account
 - a Slack account
 - a Teams account
 
-Download  config.json, main&#46;py and requrements.txt to your project folder.
+Download  config.json, main&#46;py, messages&#46;py and requrements.txt to your project folder.
 
 ## The setup
 
