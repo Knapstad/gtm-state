@@ -1,4 +1,4 @@
-cachetools==4.2.2
+cachetools==4.2.4
 certifi==2021.10.8
 chardet==4.0.0
 google-api-core==2.2.0
