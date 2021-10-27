@@ -9,7 +9,7 @@ google-cloud-core==2.0.0
 google-cloud-storage==1.42.2
 google-resumable-media==2.1.0
 googleapis-common-protos==1.53.0
-httplib2==0.19.1
+httplib2==0.20.1
 protobuf==3.19.0
 idna==3.3
 pyasn1==0.4.8
