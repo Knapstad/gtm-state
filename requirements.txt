@@ -5,8 +5,8 @@ google-api-core==2.2.0
 google-auth==2.3.2
 google-api-python-client==2.28.0
 google-auth-httplib2==0.1.0
+google-cloud-storage==1.42.3
 google-cloud-core==2.1.0
-google-cloud-storage==1.42.2
 google-resumable-media==2.1.0
 googleapis-common-protos==1.53.0
 httplib2==0.20.1
