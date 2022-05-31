@@ -14,7 +14,7 @@ protobuf==4.21.1
 idna==3.3
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
-pytz==2021.3
+pytz==2022.1
 requests==2.26.0
 rsa==4.7.2
 six==1.16.0
