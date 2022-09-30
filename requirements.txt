@@ -10,7 +10,7 @@ google-cloud-core==2.1.0
 google-resumable-media==2.3.3
 googleapis-common-protos==1.56.2
 httplib2==0.20.1
-protobuf==4.21.1
+protobuf==4.21.7
 idna==3.3
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
