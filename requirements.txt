@@ -11,7 +11,7 @@ google-resumable-media==2.3.3
 googleapis-common-protos==1.56.2
 protobuf==4.21.9
 httplib2==0.21.0
-idna==3.3
+idna==3.4
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pytz==2022.1
