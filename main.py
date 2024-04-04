@@ -131,63 +131,63 @@ def get_trigger_changes(live: dict, oldversion: dict):
 def main(*args, **kwargs):
     with open("config.json") as file:
         config = json.load(file)
-        SCOPES = [
-            "https://www.googleapis.com/auth/tagmanager.readonly",
-            "https://www.googleapis.com/auth/devstorage.read_write",
-        ]
-        SERVICE_ACCOUNT_FILE = config["cloud_credetials"]
+    SCOPES = [
+        "https://www.googleapis.com/auth/tagmanager.readonly",
+        "https://www.googleapis.com/auth/devstorage.read_write",
+    ]
+    SERVICE_ACCOUNT_FILE = config["cloud_credetials"]
 
-        BLOB_NAME = config["blob_name"]
-        BUCKET_NAME = config["bucket_name"]
-        HOOK = config["slack_hook"]
-        MICROSOFT = config["microsoft_hook"]
-        CREDENTIALS = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES
-        )
-        service = googleapiclient.discovery.build(
-            "tagmanager", "v2", credentials=CREDENTIALS, cache_discovery=False
-        )
-        client = storage.Client(credentials=CREDENTIALS)
-        accounts = service.accounts().list().execute()
-        containers = [
-            service.accounts()
-            .containers()
-            .list(parent=account["path"])
-            .execute()["container"]
-            for account in accounts["account"]
-        ]
-        # flatten containers list
-        containers = [item for sublist in containers for item in sublist]
-        cloud_version = load_version_from_cloud(client, BLOB_NAME, BUCKET_NAME)
-        cloud_version = json.loads(str(cloud_version, "utf8"))
+    BLOB_NAME = config["blob_name"]
+    BUCKET_NAME = config["bucket_name"]
+    HOOK = config["slack_hook"]
+    MICROSOFT = config["microsoft_hook"]
+    CREDENTIALS = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    )
+    service = googleapiclient.discovery.build(
+        "tagmanager", "v2", credentials=CREDENTIALS, cache_discovery=False
+    )
+    client = storage.Client(credentials=CREDENTIALS)
+    accounts = service.accounts().list().execute()
+    containers = [
+        service.accounts()
+        .containers()
+        .list(parent=account["path"])
+        .execute()["container"]
+        for account in accounts["account"]
+    ]
+    # flatten containers list
+    containers = [item for sublist in containers for item in sublist]
+    cloud_version = load_version_from_cloud(client, BLOB_NAME, BUCKET_NAME)
+    cloud_version = json.loads(str(cloud_version, "utf8"))
 
-        for container in containers:
-            GTM_ACCOUNT = container["accountId"]
-            GTM_CONTAINER = container["containerId"]
-            data = {}
-            data = get_live_version_data(service, GTM_ACCOUNT, GTM_CONTAINER)
-            version = get_live_version(data)
+    for container in containers:
+        GTM_ACCOUNT = container["accountId"]
+        GTM_CONTAINER = container["containerId"]
+        data = {}
+        data = get_live_version_data(service, GTM_ACCOUNT, GTM_CONTAINER)
+        version = get_live_version(data)
 
-            if cloud_version[f"{GTM_ACCOUNT}_{GTM_CONTAINER}"] == version:
-                pass
+        if cloud_version[f"{GTM_ACCOUNT}_{GTM_CONTAINER}"] == version:
+            pass
 
-            else:
-                version_data = get_version_data(
-                    service,
-                    cloud_version[f"{GTM_ACCOUNT}_{GTM_CONTAINER}"],
-                    GTM_ACCOUNT,
-                    GTM_CONTAINER,
-                )
-                tag_changes = get_tag_changes(data, version_data)
-                trigger_changes = get_trigger_changes(data, version_data)
-                variable_changes = get_variable_changes(data, version_data)
-                # message = create_slack_message(tag_changes, trigger_changes, variable_changes, data)
-                send_teams_message(
-                    MICROSOFT, tag_changes, trigger_changes, variable_changes, data
-                )
-                # send_slack_message(HOOK, message)
-                cloud_version[f"{GTM_ACCOUNT}_{GTM_CONTAINER}"] = version
-                save_version_to_cloud(client, cloud_version, BLOB_NAME, BUCKET_NAME)
+        else:
+            version_data = get_version_data(
+                service,
+                cloud_version[f"{GTM_ACCOUNT}_{GTM_CONTAINER}"],
+                GTM_ACCOUNT,
+                GTM_CONTAINER,
+            )
+            tag_changes = get_tag_changes(data, version_data)
+            trigger_changes = get_trigger_changes(data, version_data)
+            variable_changes = get_variable_changes(data, version_data)
+            # message = create_slack_message(tag_changes, trigger_changes, variable_changes, data)
+            send_teams_message(
+                MICROSOFT, tag_changes, trigger_changes, variable_changes, data
+            )
+            # send_slack_message(HOOK, message)
+            cloud_version[f"{GTM_ACCOUNT}_{GTM_CONTAINER}"] = version
+            save_version_to_cloud(client, cloud_version, BLOB_NAME, BUCKET_NAME)
 
 
 if __name__ == "__main__":
