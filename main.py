@@ -147,7 +147,7 @@ def main(*args, **kwargs):
         service = googleapiclient.discovery.build(
             "tagmanager", "v2", credentials=CREDENTIALS, cache_discovery=False
         )
-        client = storage.Client(project="obos", credentials=CREDENTIALS)
+        client = storage.Client(credentials=CREDENTIALS)
         accounts = service.accounts().list().execute()
         containers = [
             service.accounts()
