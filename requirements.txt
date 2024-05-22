@@ -15,7 +15,7 @@ idna==3.3
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pytz==2022.1
-requests==2.28.1
+requests==2.32.2
 rsa==4.9
 six==1.16.0
 uritemplate==4.1.1
