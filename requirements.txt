@@ -1,6 +1,6 @@
 cachetools==5.2.0
+chardet==5.2.0
 certifi==2024.6.2
-chardet==4.0.0
 google-api-core==2.19.0
 google-auth==2.30.0
 google-api-python-client==2.133.0
