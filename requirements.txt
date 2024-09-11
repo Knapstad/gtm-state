@@ -13,7 +13,7 @@ protobuf==4.22.1
 httplib2==0.21.0
 idna==3.7
 pyasn1==0.4.8
-pyasn1-modules==0.2.8
+pyasn1-modules==0.4.1
 pytz==2024.1
 requests==2.32.3
 rsa==4.9
